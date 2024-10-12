@@ -1,5 +1,6 @@
 import { randomInt } from "crypto";
-import { Player } from "./Player";
+import { bfsFindClosest } from "./bfs/bfs-find-closest";
+import { Player } from "./player/Player";
 import { PointOfInterest } from "./PointOfInterest";
 import { Enemy } from "./points-of-interest/Enemy";
 import { Obstacle } from "./points-of-interest/Obstacle";
@@ -11,10 +12,14 @@ import { emptyMatrix } from "./utils/emty-matrix";
 export class CoordinateMap {
   public matrix: Coord[][];
 
-  constructor(private readonly width: number, private readonly height: number) {
+  constructor(
+    private readonly width: number,
+    private readonly height: number,
+    private readonly pointsOfInterest: number
+  ) {
     this.matrix = emptyMatrix(this.width, this.height);
 
-    for (let i = 0; i < 150; i++) {
+    for (let i = 0; i < this.pointsOfInterest; i++) {
       const pointOfInterest = this.randomPointOfInterest(
         randomInt(this.width),
         randomInt(this.height)
@@ -24,46 +29,18 @@ export class CoordinateMap {
     }
   }
 
-  public getPlayer(): Player {
-    let player: Player | null = null;
-
-    for (const row of this.matrix) {
-      for (const coord of row) {
-        if (coord instanceof Player) {
-          player = coord;
-          break;
-        }
-      }
-    }
-
-    if (!player) {
-      throw new Error("Player not found");
-    }
-
-    return player;
-  }
-
   public getCoord(x: number, y: number): Coord {
     return this.matrix[y][x];
   }
 
-  public chooseTreasure(): Treasure {
-    let treasure: Treasure | null = null;
-
-    for (const row of this.matrix) {
-      for (const coord of row) {
-        if (coord instanceof Treasure) {
-          treasure = coord;
-          break;
-        }
-      }
-    }
+  public chooseTreasure(player: Player): Treasure {
+    const treasure = bfsFindClosest(Treasure, player, this.matrix);
 
     if (!treasure) {
       throw new Error("Treasure not found");
     }
 
-    return treasure;
+    return treasure as Treasure;
   }
 
   public setCoord(CoordClass: typeof Coord): void {

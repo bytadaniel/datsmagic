@@ -1,5 +1,4 @@
 build
-src/_v1
 node_modules
 .DS_Store
 
