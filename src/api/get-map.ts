@@ -1,17 +1,22 @@
 import { Desert } from "./get-map-types";
-import { host, token } from "./token";
+import { gameApiUrl, token } from "./token";
 
 export async function getMap(): Promise<Desert> {
-  const response = await fetch(`${host}/play/magcarp/player/move`, {
+  const response = await fetch(gameApiUrl, {
     method: "POST",
     headers: {
-      ContentType: "application/json",
+      "Content-Type": "application/json",
       ["X-Auth-Token"]: token,
     },
     body: JSON.stringify({
       transports: [],
     }),
   });
+
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(`Game API returned HTTP ${response.status}${detail ? `: ${detail}` : ""}`);
+  }
 
   return response.json();
 }

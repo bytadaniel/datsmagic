@@ -85,7 +85,7 @@ function getCurrentMinuteOfDay(): number {
   return now.getHours() * 60 + now.getMinutes();
 }
 
-(async function () {
+(async function main() {
   const limiter = new RateLimiter({ tokensPerInterval: 3, interval: 1000 });
   let map = await getMap();
 
@@ -93,8 +93,7 @@ function getCurrentMinuteOfDay(): number {
 
   setInterval(() => fs.writeFileSync("./map.json", JSON.stringify(map)), 500);
 
-  new Promise(async () => {
-    while (true) {
+  while (true) {
       await limiter.removeTokens(1);
       if (!map?.transports?.length) {
         console.log(map);
@@ -244,6 +243,9 @@ function getCurrentMinuteOfDay(): number {
       map = await move({ transports: transportPayloads });
 
       if (map.errors?.length) console.log(map.errors);
-    }
-  });
-})();
+  }
+})().catch((error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(`Node.js player stopped: ${message}`);
+  process.exitCode = 1;
+});
